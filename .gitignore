@@ -6,6 +6,7 @@
 /k6/k6.exe
 /k6-axe-a11y/node_modules/
 /postman-cli/node_modules/
+/.planit/
 /tmp/
 /reports/
 /logs/

@@ -41,7 +41,7 @@ $script:FinalStatus = 'ERROR'
 $script:SummaryPath = Join-Path $script:RunDir 'summary.txt'
 $script:HtmlPath = Join-Path $script:RunDir 'report.html'
 $script:OverallPath = Join-Path $script:RunDir 'overall_results.json'
-$script:PublicScript = Join-Path (Split-Path -Parent $script:Root) 'Ultimate-QA-Orchestrator.ps1'
+$script:PublicScript = Join-Path $script:Root 'Ultimate-QA-Orchestrator.ps1'
 $script:SavedCurrentDirectory = [Environment]::CurrentDirectory
 $script:SavedLocation = Get-Location
 $script:SavedOutputEncoding = $OutputEncoding
@@ -425,7 +425,7 @@ function Get-RunHtmlReport([object]$Report,[string]$LinkBase) {
       if ($phaseName -or $locations.Count) { [void]$html.AppendLine('<p class="where">' + (ConvertTo-HtmlText $phaseName) + $(if ($locations.Count) { ' &middot; ' + (ConvertTo-HtmlText ($locations -join ' | ')) } else { '' }) + '</p>') }
       if ($details) { [void]$html.AppendLine('<p>' + (ConvertTo-HtmlText $details) + '</p>') }
       if ($null -ne (Get-ReportValue $finding 'occurrences') -and [int](Get-ReportValue $finding 'occurrences') -gt 1) { [void]$html.AppendLine('<p class="quiet">Observed ' + [string](Get-ReportValue $finding 'occurrences') + ' time(s) across the listed browser/page locations.</p>') }
-      $sourceLocations = @((Get-ReportValue $finding 'sourceLocations'))
+      $sourceLocations = @((Get-ReportValue $finding 'sourceLocations') | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
       if ($sourceLocations.Count) {
         [void]$html.AppendLine('<details><summary>' + $sourceLocations.Count + ' source location(s)</summary><ul>')
         foreach ($sourceLocation in $sourceLocations) { [void]$html.AppendLine('<li><code>' + (ConvertTo-HtmlText $sourceLocation) + '</code></li>') }
@@ -1335,7 +1335,7 @@ try {
   }
 
   $script:Root = [IO.Path]::GetFullPath($PSScriptRoot)
-  $script:PublicScript = Join-Path (Split-Path -Parent $script:Root) 'Ultimate-QA-Orchestrator.ps1'
+  $script:PublicScript = Join-Path $script:Root 'Ultimate-QA-Orchestrator.ps1'
   $play = Join-Path $script:Root 'playwright'
   $node = Join-Path $play 'node.exe'
   if (!(Test-Path -LiteralPath $node -PathType Leaf)) { throw ('Portable Node.js was not found: ' + $node) }

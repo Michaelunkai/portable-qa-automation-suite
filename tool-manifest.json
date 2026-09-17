@@ -1,6 +1,9 @@
 {
   "node": "24.21.0",
+  "nodeWinX64ZipSha256": "158f7685b44de51f6c0df1d153526cbcd3e1bc739a8dfc607721cef75de9e541",
   "k6": "v2.2.0",
+  "k6WinX64ZipSha256": "ceb2b1e1cf9dbe1303c6c33ec83ffda86dda5c610b4def92064d3c7ebae8d9f4",
+  "k6ChecksumsSha256": "cecbd810434043492a60fc6f2d32f60036118927e0164757271823f6c96c64f2",
   "playwright": "1.63.0",
   "axeCli": "4.13.0",
   "axePlaywright": "4.13.0",

@@ -9,10 +9,9 @@ const readline = require('node:readline');
 const crypto = require('node:crypto');
 
 const suite = path.resolve(__dirname, '..');
-const installRoot = path.dirname(suite);
 const node = path.join(suite, 'playwright', 'node.exe');
 const powershell = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
-const publicScript = path.join(installRoot, 'Ultimate-QA-Orchestrator.ps1');
+const publicScript = path.join(suite, 'Ultimate-QA-Orchestrator.ps1');
 const tempRoot = path.join(suite, 'tmp', 'qa-regression-' + crypto.randomUUID());
 const acceptanceRoot = path.join(suite, 'reports', 'acceptance', 'qa-regression-' + crypto.randomUUID());
 const reports = {};
@@ -490,7 +489,9 @@ async function main() {
     assert(negativeRun.summary.includes('serious') || negativeRun.summary.includes('high'));
     assert.equal(negativeRun.overall.phases.visual.status, 'incomplete');
     assert.match(negativeRun.summary, /QA RESULT: FAIL/);
-    completedChecks.push('Local negative accessibility fixture reports serious color contrast and child exit code 1.');
+    const negativeHtml = fs.readFileSync(path.join(negativeRun.runDir, 'report.html'), 'utf8');
+    assert(!/<summary>\d+ source location\(s\)<\/summary><ul>\s*<li><code>\s*<\/code>\s*<\/li>\s*<\/ul>/.test(negativeHtml), 'negative report emitted an empty source-location row');
+    completedChecks.push('Local negative accessibility fixture reports serious color contrast, omits empty source-location rows, and child exit code 1.');
     process.stdout.write('LOCAL NEGATIVE PASS: serious color contrast is preserved as an accessibility failure and the child process exits 1.\n');
 
     const browser404 = runPublicPowerShell([
