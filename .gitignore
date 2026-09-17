@@ -13,3 +13,14 @@
 *.zip
 *.webm
 *.trace
+/playwright/CHANGELOG.md
+/playwright/LICENSE
+/playwright/README.md
+/playwright/corepack
+/playwright/corepack.cmd
+/playwright/install_tools.bat
+/playwright/nodevars.bat
+/playwright/npm
+/playwright/npm.*
+/playwright/npx
+/playwright/npx.*
