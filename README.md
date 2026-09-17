@@ -8,6 +8,8 @@ Use Windows PowerShell 5.1 without loading a user profile:
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ultimate-QA-Orchestrator.ps1 -DryRun
 
+The installed copy also provides the sibling `..\Ultimate-QA-Orchestrator.ps1` entry point at `F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1`; it forwards the same options to this suite script.
+
 Provide target settings directly:
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ultimate-QA-Orchestrator.ps1 -TargetUrl https://staging.example.test -ApiBaseUrl https://staging.example.test/api -ApiCollection .\collections\example.postman_collection.json -ContractSchema .\collections\mock-api.schema.json
@@ -33,4 +35,4 @@ Continuous mode reruns all four phases at each interval, alerts when a previousl
 
 Runtime environment variables for temp, user profile, app data, npm cache, and Playwright browsers point inside this suite. This redirects the suite's known caches and profiles to F:. Windows and third-party components can still create OS-level data outside the suite, so this configuration cannot guarantee that absolutely no data is written to C:.
 
-The tracked repository contains scripts, configuration, sample contract data, and package manifests. It deliberately excludes runtimes, node_modules, browsers, reports, traces, videos, npm cache, and local profiles.
+The tracked repository contains scripts, configuration, sample contract data, and package manifests. It deliberately excludes runtimes, node_modules, browsers, reports, traces, videos, npm cache, and local profiles. A fresh checkout therefore needs the portable toolchain installed in the suite folder before running.

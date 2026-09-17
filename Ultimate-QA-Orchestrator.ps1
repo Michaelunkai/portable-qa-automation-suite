@@ -74,7 +74,7 @@ if (!$TargetUrl -and $ApiBaseUrl) { $TargetUrl = $ApiBaseUrl }
 if (!$TargetUrl) { $TargetUrl = Read-Host 'Target application URL' }
 if (!$ApiBaseUrl) { $ApiBaseUrl = Read-Host 'API base endpoint (blank uses the target URL)' }
 if (!$ApiBaseUrl) { $ApiBaseUrl = $TargetUrl }
-if (!(Test-Path -LiteralPath $Node -PathType Leaf) -or !(Test-Path -LiteralPath $K6Exe -PathType Leaf) -or !(Test-Path -LiteralPath $NewmanCli -PathType Leaf) -or !(Test-Path -LiteralPath $PlayTestCli -PathType Leaf)) { throw 'One or more portable runtimes are missing. Run the installer in this suite folder.' }
+if (!(Test-Path -LiteralPath $Node -PathType Leaf) -or !(Test-Path -LiteralPath $K6Exe -PathType Leaf) -or !(Test-Path -LiteralPath $NewmanCli -PathType Leaf) -or !(Test-Path -LiteralPath $PlayTestCli -PathType Leaf)) { throw 'One or more portable runtimes are missing. This source-only repository excludes downloaded runtime binaries; install the portable toolchain in this suite folder before running it.' }
 foreach ($url in @($TargetUrl,$ApiBaseUrl)) {
   if (![Uri]::IsWellFormedUriString($url,[UriKind]::Absolute) -or !($url.StartsWith('http://') -or $url.StartsWith('https://'))) { throw "Expected an absolute HTTP(S) URL: $url" }
 }
@@ -263,7 +263,7 @@ function Invoke-QACycle {
     } catch { Write-Warning ('Could not read k6 summary metrics: ' + $_.Exception.Message) }
   }
   $regressions=@()
-  if ($Continuous -and $null -ne $p95Value) {
+  if ($Continuous -and $phase.performance -and $null -ne $p95Value) {
     $baseDir = Join-Path $Reports 'baselines'
     [IO.Directory]::CreateDirectory($baseDir) | Out-Null
     $keyInput = $TargetUrl + '|' + $ApiBaseUrl
