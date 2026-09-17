@@ -1,0 +1,9 @@
+{
+  "node": "24.21.0",
+  "k6": "v2.2.0",
+  "playwright": "1.63.0",
+  "axeCli": "4.13.0",
+  "axePlaywright": "4.13.0",
+  "newman": "6.2.2",
+  "updatedUtc": "2026-09-17T14:52:53Z"
+}

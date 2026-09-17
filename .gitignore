@@ -1,0 +1,15 @@
+/playwright/node.exe
+/playwright/npm-runtime/
+/playwright/npm-global/
+/playwright/node_modules/
+/playwright/browsers/
+/k6/k6.exe
+/k6-axe-a11y/node_modules/
+/postman-cli/node_modules/
+/tmp/
+/reports/
+/logs/
+/playwright/tests/qa.spec.js-snapshots/
+*.zip
+*.webm
+*.trace

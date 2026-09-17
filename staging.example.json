@@ -1,0 +1,13 @@
+{
+  "TargetUrl": "https://staging.example.test/",
+  "ApiBaseUrl": "https://staging.example.test/api",
+  "ApiCollection": "",
+  "ContractSchema": "",
+  "VirtualUsers": 5,
+  "RampSeconds": 5,
+  "HoldSeconds": 10,
+  "ApiTimeoutMs": 5000,
+  "P95ThresholdMs": 1000,
+  "P99ThresholdMs": 2000,
+  "MaxPages": 20
+}
