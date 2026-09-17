@@ -1,38 +1,56 @@
 # Portable QA Automation
 
-Everything for this suite lives in this folder. Portable Node.js is under playwright; k6 is under k6; axe-core CLI and its Playwright engine are under k6-axe-a11y; Newman is under postman-cli. Browser builds, package caches, temporary profiles, logs, reports, and the Git repository also stay here.
+The suite and its installed entry point are:
 
-## Run
+- Public entry point: F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1
+- Suite source: F:\backup\windowsapps\installed\Portable-QA-Automation\Ultimate-QA-Orchestrator.ps1
 
-Use Windows PowerShell 5.1 without loading a user profile:
+Run with Windows PowerShell 5.1 and no profile:
 
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ultimate-QA-Orchestrator.ps1 -DryRun
+    powershell.exe -NoProfile -File 'F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1' -TargetUrl 'https://staging.example.test/' -NonInteractive -PerformanceMode Smoke -MaxPages 3 -SkipToolUpdates
 
-The installed copy also provides the sibling `..\Ultimate-QA-Orchestrator.ps1` entry point at `F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1`; it forwards the same options to this suite script.
+The Smoke mode is the default. It performs one paced k6 iteration with one virtual user and at most one request per distinct website/API URL. Load must be selected explicitly. Load is capped by the configured VU, duration and request bounds and paces requests. Skip omits k6.
 
-Provide target settings directly:
+    powershell.exe -NoProfile -File 'F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1' -TargetUrl 'https://staging.example.test/' -ApiBaseUrl 'https://staging.example.test/api' -PerformanceMode Load -VirtualUsers 5 -RampSeconds 5 -HoldSeconds 10 -MaxPages 10 -SkipToolUpdates
 
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ultimate-QA-Orchestrator.ps1 -TargetUrl https://staging.example.test -ApiBaseUrl https://staging.example.test/api -ApiCollection .\collections\example.postman_collection.json -ContractSchema .\collections\mock-api.schema.json
+Use an API endpoint or a Postman collection only when one is known:
 
-Or pass a JSON configuration file:
+    powershell.exe -NoProfile -File 'F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1' -TargetUrl 'https://staging.example.test/' -ApiBaseUrl 'https://staging.example.test/api' -ContractSchema 'F:\path\api.schema.json' -NonInteractive -PerformanceMode Smoke -SkipToolUpdates
 
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ultimate-QA-Orchestrator.ps1 -ConfigPath .\staging.json
+Without ApiBaseUrl or ApiCollection, API checks are reported as skipped; the website is not treated as an API. For a supplied Postman collection, its own response expectations are kept. A response-time assertion is added. To apply ContractSchema to collection requests, set the collection variable qaValidateJsonSchema to true. A generated API request checks successful HTTP status and response time; JSON parsing/schema checks run only when a schema was explicitly supplied.
 
-Run continuously until Ctrl+C:
+Settings may also come from JSON:
 
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ultimate-QA-Orchestrator.ps1 -ConfigPath .\staging.json -Continuous -PollSeconds 300
+    powershell.exe -NoProfile -File 'F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1' -ConfigPath 'F:\backup\windowsapps\installed\Portable-QA-Automation\staging.example.json' -NonInteractive -SkipToolUpdates
 
-Continuous mode reruns all four phases at each interval, alerts when a previously passing cycle fails, compares p95/p99 latency and HTTP error rate with the first successful baseline for that target, and checks for changed suite files. When tracked suite files change, it refreshes npm packages and Playwright browser builds and checks Grafana k6 for a newer release. Use -SkipToolUpdates to disable that update behavior.
+CLI values override the config file. Relative collection and schema paths in a config are resolved from that config file. NonInteractive requires a target URL (unless using DryRun) and avoids Read-Host. In interactive use, an empty API prompt means skip API checks.
 
-## Phases and outputs
+## Local checks
 
-- Newman runs the supplied Postman collection, or generates a GET request for ApiBaseUrl. It adds status, JSON shape, latency, and optional JSON Schema assertions to every request. Output: reports\api_test_results.json.
-- Playwright crawls same-origin links up to MaxPages in Chromium, Firefox, and WebKit. It writes screenshots, traces, video, and a JSON test report under reports\playwright\current.
-- axe-core evaluates discovered pages for WCAG 2.1 A, AA, and AAA. Findings: reports\a11y_results.json. Any reported violation fails the browser test.
-- k6 applies a ramping VU scenario to both the target UI URL and API endpoint and exports p95/p99 and error metrics to reports\performance_results.json.
-- reports\overall_results.json records phase status and the runtime paths used.
-- Pass -UpdateVisualBaseline to record screenshot baselines for the configured target. Later runs compare against those baselines.
+DryRun starts a local HTTP fixture and runs the real browser, axe, Newman and k6 components without contacting a live site:
 
-Runtime environment variables for temp, user profile, app data, npm cache, and Playwright browsers point inside this suite. This redirects the suite's known caches and profiles to F:. Windows and third-party components can still create OS-level data outside the suite, so this configuration cannot guarantee that absolutely no data is written to C:.
+    powershell.exe -NoProfile -File 'F:\backup\windowsapps\installed\Ultimate-QA-Orchestrator.ps1' -DryRun -SkipToolUpdates -UpdateVisualBaseline -PerformanceMode Smoke -MaxPages 2
 
-The tracked repository contains scripts, configuration, sample contract data, and package manifests. It deliberately excludes runtimes, node_modules, browsers, reports, traces, videos, npm cache, and local profiles. A fresh checkout therefore needs the portable toolchain installed in the suite folder before running.
+The deterministic regression harness exercises API semantics, a same-process positive run and deliberate local failures:
+
+    F:\backup\windowsapps\installed\Portable-QA-Automation\playwright\node.exe F:\backup\windowsapps\installed\Portable-QA-Automation\tests\qa-regression.js
+
+It preserves test reports under reports\acceptance and removes its temporary test files. A passing fixture run is a tool check, not evidence about the quality of a production target.
+
+## Checks and coverage
+
+- HTTP/API: Newman records request names, status, content type, latency and assertion results. Blank API input is skipped. Collections keep their response semantics; explicit contracts can fail with assertion details.
+- Browser/navigation: Playwright visits same-origin routes within MaxPages using Chromium, Firefox and WebKit, plus Chromium mobile viewport emulation. It records navigation status, uncaught page errors, JavaScript console errors, relevant failed requests, titles and screenshots. Routes that may mutate state or download content are excluded.
+- Accessibility: axe checks supported WCAG 2.1 A/AA/AAA rules and reports impact, selector, failure text and help link. Incomplete/manual-review items remain explicit. Findings are grouped across browser/page locations.
+- Visual regression: Baselines are keyed by target, browser, viewport and route. A missing baseline is INCOMPLETE; UpdateVisualBaseline records one only when explicitly requested. Review a visual change before replacing a baseline.
+- Performance: k6 reports request count, observed failures and rate, throughput, p95/p99, configured thresholds and any request errors. Smoke is paced and bounded. Load is optional and bounded. HTTP timings do not measure browser rendering.
+
+The crawler proves only the routes it visited. It does not establish authenticated permissions, custom business workflows, native desktop/mobile behavior, exhaustive accessibility, security penetration coverage or production capacity unless matching scenarios and environments are provided. No custom business-flow scenario is bundled.
+
+## Results and exit behavior
+
+Each invocation writes an immutable directory to reports\runs\run-id containing report.html, summary.txt, overall_results.json, phase reports, logs and browser evidence. Open report.html for a readable overview with phase cards, prioritized findings, accessibility review, coverage limits and links to the evidence. reports\summary.html, reports\summary.txt and related root JSON files are compatibility copies of the latest run. The terminal summary keeps the artifact list concise; overall_results.json retains the full trace and video inventory. The final same-terminal summary reports PASS, FAIL, INCOMPLETE or ERROR, findings, coverage limits, remediation and absolute evidence paths.
+
+By default the script returns to the invoking PowerShell session and sets $LASTEXITCODE; it does not terminate that session. Add ExitCodeOnCompletion when a process exit is required: 0 means pass, 1 fail, 2 incomplete and 3 runtime/configuration error.
+
+Known tool caches, browser downloads, temporary profiles, logs and reports are redirected under this suite on F:. Windows and third-party components may still create operating-system data outside the suite. A fresh checkout needs the portable Node.js, k6, Newman, Playwright packages and browser builds installed in their documented suite folders.
